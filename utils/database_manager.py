@@ -18,7 +18,6 @@ class DatabaseManager:
         self.wabi_limit = 100_000
 
     def get_strategy_data(self, config_file_path=None, start_date=None, end_date=None):
-        start_date = time.time()
         def load_data(table_loader):
             try:
                 return table_loader()
