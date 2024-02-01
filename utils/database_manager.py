@@ -15,8 +15,10 @@ class DatabaseManager:
         self.db_path = f'sqlite:///{os.path.join(db_name)}'
         self.engine = create_engine(self.db_path, connect_args={'check_same_thread': False})
         self.session_maker = sessionmaker(bind=self.engine)
+        self.wabi_limit = 100_000
 
     def get_strategy_data(self, config_file_path=None, start_date=None, end_date=None):
+        start_date = time.time()
         def load_data(table_loader):
             try:
                 return table_loader()
@@ -77,7 +79,7 @@ class DatabaseManager:
 
     @staticmethod
     def _get_orders_query(config_file_path=None, start_date=None, end_date=None):
-        query = "SELECT * FROM 'Order'"
+        query = f"SELECT * FROM 'Order' ORDER BY creation_timestamp desc LIMIT {self.wabi_limit}"
         conditions = []
         if config_file_path:
             conditions.append(f"config_file_path = '{config_file_path}'")
@@ -91,7 +93,7 @@ class DatabaseManager:
 
     @staticmethod
     def _get_order_status_query(order_ids=None, start_date=None, end_date=None):
-        query = "SELECT * FROM OrderStatus"
+        query = f"SELECT * FROM OrderStatus ORDER BY timestamp desc LIMIT {self.wabi_limit}"
         conditions = []
         if order_ids:
             order_ids_string = ",".join(f"'{order_id}'" for order_id in order_ids)
@@ -106,7 +108,7 @@ class DatabaseManager:
 
     @staticmethod
     def _get_trade_fills_query(config_file_path=None, start_date=None, end_date=None):
-        query = "SELECT * FROM TradeFill"
+        query = f"SELECT * FROM TradeFill ORDER BY timestamp desc LIMIT {self.wabi_limit}"
         conditions = []
         if config_file_path:
             conditions.append(f"config_file_path = '{config_file_path}'")
@@ -120,7 +122,7 @@ class DatabaseManager:
 
     @staticmethod
     def _get_market_data_query(start_date=None, end_date=None):
-        query = "SELECT * FROM MarketData"
+        query = f"SELECT * FROM MarketData ORDER BY timestamp desc LIMIT {self.wabi_limit}"
         conditions = []
         if start_date:
             conditions.append(f"timestamp >= '{start_date * 1e6}'")
@@ -132,7 +134,7 @@ class DatabaseManager:
 
     @staticmethod
     def _get_position_executor_query(start_date=None, end_date=None):
-        query = "SELECT * FROM PositionExecutors"
+        query = f"SELECT * FROM PositionExecutors ORDER BY timestamp desc LIMIT {self.wabi_limit}"
         conditions = []
         if start_date:
             conditions.append(f"timestamp >= '{start_date}'")
